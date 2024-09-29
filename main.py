@@ -31,7 +31,6 @@ class App:
         self.terrain = Terrain(self)
         # Initialize Chat Interface
         self.chat_interface = ChatInterface(self)
-        
         self.running = True
 
     def update(self):
@@ -89,3 +88,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+if event.type == pg.KEYDOWN and event.key == pg.K_c:
+    self.player.toggle_debug()

@@ -4,7 +4,7 @@ from entity import Entity
 
 P = 'player'
 K = 'kitty'  # entity
-A, B, C, D, E, h1, h2, h3, h4, h5, h6, st, st2, rt, t2, t3, t4, t5, g, t, f = 'van', 'tank', 'blue_tree', 'car', 'grass','house1','house2','house3','house4','house5','house6','stores','store2','redtree','tree2','tree3','tree4','tree5','grass2','trellis','fountain'
+A, B, C, D, E, h1, h2, h3, h4, h5, h6, st, st2, rt, t2, t3, t4, t5, g, t, f, sr,tr,i3,i4 = 'van', 'tank', 'blue_tree', 'car', 'grass','house1','house2','house3','house4','house5','house6','stores','store2','redtree','tree2','tree3','tree4','tree5','grass2','trellis','fountain','straightroad','roadturning','tripleintersection','fourwayintersection'
 
 MAP = [
     [h1, f, g, g, K, t5, t5, 0, h2],

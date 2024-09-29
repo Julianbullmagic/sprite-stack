@@ -23,13 +23,6 @@ class StackedSprite(pg.sprite.Sprite):
         self.rot = (rot % 360) // self.viewing_angle
         self.is_grass = is_grass
 
-        # Generate a unique tint for each sprite instance
-        self.tint = self.generate_tint() if name in ['grass', 'grass2', 'blue_tree', 'redtree', 'tree2', 'tree3', 'tree4', 'tree5'] else None
-
-        # Apply tint to all rotated sprites
-        if self.tint:
-            self.apply_tint_to_sprites()
-
         # Initialize image and rect
         self.image = self.rotated_sprites[0]
         self.rect = self.image.get_rect()
@@ -39,17 +32,34 @@ class StackedSprite(pg.sprite.Sprite):
         self.collision_shape = self.create_collision_shape()
 
     def create_collision_shape(self):
-        if self.name in ['house', 'house2', 'house3']:  # Add all building names here
+        if self.name in ['house1', 'house2', 'house3', 'house4', 'house5', 'house6', 'stores', 'store2']:
             # Rectangular collision for buildings
             width = self.attrs.get('collision_width', self.rect.width * 0.8)
             height = self.attrs.get('collision_height', self.rect.height * 0.5)
             return pg.Rect(self.pos.x - width / 2, self.pos.y - height / 2, width, height)
-        elif self.name in ['blue_tree', 'redtree', 'tree2', 'tree3', 'tree4', 'tree5', 'fountain']:  # Add all tree and fountain names
-            # Circular collision for trees and fountain
+        elif self.name in ['blue_tree', 'redtree', 'tree2', 'tree3', 'tree4', 'tree5', 'fountain', 'car', 'van', 'tank']:
+            # Circular collision for trees, fountain, and vehicles
             radius = self.attrs.get('collision_radius', min(self.rect.width, self.rect.height) * 0.3)
             return (self.pos, radius)
         else:
             return None
+
+    def update(self):
+        self.transform()
+        self.get_angle()
+        self.get_image()
+        self.change_layer()
+
+    def draw_collision_shape(self, screen):
+        if self.collision_shape:
+            transformed_pos = (self.pos - self.player.offset).rotate_rad(self.player.angle) + CENTER
+            if isinstance(self.collision_shape, pg.Rect):
+                rect = self.collision_shape.copy()
+                rect.center = transformed_pos
+                pg.draw.rect(screen, (255, 0, 0), rect, 2)
+            elif isinstance(self.collision_shape, tuple):
+                pg.draw.circle(screen, (255, 0, 0), transformed_pos, self.collision_shape[1], 2)
+
 
     def generate_tint(self):
         if self.name.startswith('grass'):
@@ -79,28 +89,12 @@ class StackedSprite(pg.sprite.Sprite):
             tinted_sprite.fill(self.tint, special_flags=pg.BLEND_RGB_MULT)
             self.rotated_sprites[angle] = tinted_sprite
 
-    def update(self):
-        self.transform()
-        self.get_angle()
-        self.get_image()
-        self.change_layer()
-        self.update_collision_shape()
 
     def update_collision_shape(self):
         if isinstance(self.collision_shape, pg.Rect):
             self.collision_shape.center = self.pos
         elif isinstance(self.collision_shape, tuple):
             self.collision_shape = (self.pos, self.collision_shape[1])
-
-    def draw_collision_shape(self, screen):
-        if self.collision_shape:
-            transformed_pos = (self.pos - self.player.offset).rotate_rad(self.player.angle) + CENTER
-            if isinstance(self.collision_shape, pg.Rect):
-                rect = self.collision_shape.copy()
-                rect.center = transformed_pos
-                pg.draw.rect(screen, (255, 0, 0), rect, 2)
-            elif isinstance(self.collision_shape, tuple):
-                pg.draw.circle(screen, (255, 0, 0), transformed_pos, self.collision_shape[1], 2)
 
     def transform(self):
         pos = (self.pos - self.player.offset).rotate_rad(self.player.angle)

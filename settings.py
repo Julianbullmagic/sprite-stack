@@ -185,6 +185,33 @@ STACKED_SPRITE_ATTRS = {
         'scale': 6,
         'y_offset': calculate_y_offset(64, 6),
         'initial_rotation': 'random',
+    },                                                    'straightroad': {
+        'path': 'assets/stacked_sprites/straightroad.png',
+        'num_layers': 10,
+        'scale': 6,
+        'y_offset': calculate_y_offset(10, 6),
+        'initial_rotation': 'random',
+    },
+                                                        'roadturning': {
+        'path': 'assets/stacked_sprites/roadturning.png',
+        'num_layers': 10,
+        'scale': 6,
+        'y_offset': calculate_y_offset(10, 6),
+        'initial_rotation': 'random',
+    },
+                                                        'tripleintersection': {
+        'path': 'assets/stacked_sprites/tripleintersection.png',
+        'num_layers': 10,
+        'scale': 6,
+        'y_offset': calculate_y_offset(10, 6),
+        'initial_rotation': 'random',
+    },
+                                                        'fourwayintersection': {
+        'path': 'assets/stacked_sprites/fourwayintersection.png',
+        'num_layers': 10,
+        'scale': 6,
+        'y_offset': calculate_y_offset(10, 6),
+        'initial_rotation': 'random',
     },
 }
 
