@@ -15,6 +15,7 @@ class Player(BaseEntity):
         self.diag_move_corr = 1 / math.sqrt(2)
         self.collision_radius = 20
         self.debug = True
+        self.repulsion_force = 0.4  # Adjust this value to change the strength of repulsion
 
     def update(self):
         super().update()
@@ -46,7 +47,6 @@ class Player(BaseEntity):
             self.inc *= self.diag_move_corr
 
     def move(self):
-        self.original_inc = self.inc.copy()
         self.check_collisions()
         self.offset += self.inc
 
@@ -56,7 +56,7 @@ class Player(BaseEntity):
             if hasattr(sprite, 'collision_shape') and sprite != self:
                 if self.collides_with(sprite, player_world_pos):
                     if self.debug:
-                        print(f"Collision detected with {sprite.name} at {sprite.pos}")
+                        # print(f"Collision detected with {sprite.name} at {sprite.pos}")
                     self.handle_collision(sprite, player_world_pos)
 
     def collides_with(self, sprite, player_world_pos):
@@ -77,34 +77,35 @@ class Player(BaseEntity):
 
         collision_angle = self.calculate_collision_angle(self.inc, collision_normal)
         if self.debug:
-            print(f"Collision with {sprite.name} at angle: {collision_angle:.2f} degrees")
-            print(f"Collision normal: {collision_normal}")
+            # print(f"Collision with {sprite.name} at angle: {collision_angle:.2f} degrees")
+            # print(f"Collision normal: {collision_normal}")
 
-        # Calculate slide movement
-        self.inc = self.calculate_slide_movement(collision_normal, collision_angle)
+        slide_movement = self.calculate_slide_movement(collision_normal, collision_angle)
+        
+        # Apply repulsion force
+        repulsion = collision_normal * self.repulsion_force * PLAYER_SPEED
+        slide_movement += repulsion
 
-        if self.debug:
-            print(f"New movement after collision: {self.inc}")
+        self.inc = slide_movement
+
+        # if self.debug:
+            # print(f"New movement after collision: {self.inc}")
 
     def calculate_slide_movement(self, collision_normal, collision_angle):
-        # Ensure we're not dividing by zero
         if collision_angle == 0:
             return vec2(0, 0)
 
-        # Calculate slide factor (1 at 90 degrees, 0 at 0 or 180 degrees)
         slide_factor = math.sin(math.radians(collision_angle))
-
-        # Project movement onto the surface
         surface_tangent = vec2(-collision_normal.y, collision_normal.x)
         projected_movement = surface_tangent * self.inc.dot(surface_tangent)
-
-        # Apply slide factor to projected movement
         slide_movement = projected_movement * slide_factor
 
-        # Ensure minimum sliding speed
         min_slide_speed = 0.1 * PLAYER_SPEED
-        if slide_movement.length() < min_slide_speed:
-            slide_movement = slide_movement.normalize() * min_slide_speed
+        if slide_movement.length_squared() > 0:
+            if slide_movement.length() < min_slide_speed:
+                slide_movement = slide_movement.normalize() * min_slide_speed
+        else:
+            slide_movement = surface_tangent * min_slide_speed
 
         return slide_movement
 
@@ -132,7 +133,6 @@ class Player(BaseEntity):
         difference = player_world_pos - closest_point
         
         if difference.length_squared() < 1e-10:
-            # If player is inside the rectangle, push them out in the direction of the nearest edge
             edges = [
                 (vec2(1, 0), rect.right - player_world_pos.x),
                 (vec2(-1, 0), player_world_pos.x - rect.left),
@@ -148,13 +148,9 @@ class Player(BaseEntity):
         difference = player_world_pos - circle_center
         
         if difference.length_squared() < 1e-10:
-            return vec2(1, 0)  # Return an arbitrary normal if player is at the center
+            return vec2(1, 0)
         
         return difference.normalize()
-
-    def is_close_to(self, sprite, player_world_pos):
-        distance = (player_world_pos - sprite.pos).length()
-        return distance < 100  # Adjust this value as needed
 
     def toggle_debug(self):
         self.debug = not self.debug
