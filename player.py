@@ -55,9 +55,9 @@ class Player(BaseEntity):
         for sprite in self.app.main_group:
             if hasattr(sprite, 'collision_shape') and sprite != self:
                 if self.collides_with(sprite, player_world_pos):
-                    if self.debug:
+                    # if self.debug:
                         # print(f"Collision detected with {sprite.name} at {sprite.pos}")
-                    self.handle_collision(sprite, player_world_pos)
+                   self.handle_collision(sprite, player_world_pos)
 
     def collides_with(self, sprite, player_world_pos):
         if isinstance(sprite.collision_shape, pg.Rect):
@@ -76,7 +76,7 @@ class Player(BaseEntity):
             return
 
         collision_angle = self.calculate_collision_angle(self.inc, collision_normal)
-        if self.debug:
+        # if self.debug:
             # print(f"Collision with {sprite.name} at angle: {collision_angle:.2f} degrees")
             # print(f"Collision normal: {collision_normal}")
 
