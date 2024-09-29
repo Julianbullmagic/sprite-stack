@@ -17,16 +17,6 @@ class Player(BaseEntity):
         self.debug = True
 
 
-    def check_collisions(self):
-        player_world_pos = self.offset
-        for sprite in self.app.main_group:
-            if hasattr(sprite, 'collision_shape') and sprite != self:
-                if self.collides_with(sprite, player_world_pos):
-                    if self.debug:
-                        print(f"Collision detected with {sprite.name} at {sprite.pos}")
-                    self.handle_collision(sprite, player_world_pos)
-                elif self.debug and self.is_close_to(sprite, player_world_pos):
-                    print(f"Close to {sprite.name} at {sprite.pos}")
 
     def collides_with(self, sprite, player_world_pos):
         if isinstance(sprite.collision_shape, pg.Rect):
@@ -39,6 +29,25 @@ class Player(BaseEntity):
     def is_close_to(self, sprite, player_world_pos):
         distance = (player_world_pos - sprite.pos).length()
         return distance < 100  # Adjust this value as needed
+        
+    def calculate_collision_angle(self, movement_vector, collision_normal):
+        # Normalize vectors
+        movement_vector = movement_vector.normalize()
+        collision_normal = collision_normal.normalize()
+        
+        # Calculate dot product
+        dot_product = movement_vector.dot(collision_normal)
+        
+        # Clamp the dot product to [-1, 1] to avoid math domain errors
+        dot_product = max(min(dot_product, 1), -1)
+        
+        # Calculate angle in radians
+        angle_rad = math.acos(dot_product)
+        
+        # Convert to degrees
+        angle_deg = math.degrees(angle_rad)
+        
+        return angle_deg
 
     def handle_collision(self, sprite, player_world_pos):
         if isinstance(sprite.collision_shape, pg.Rect):
@@ -47,6 +56,9 @@ class Player(BaseEntity):
             collision_normal = self.get_circle_collision_normal(player_world_pos, sprite.collision_shape[0])
         else:
             return
+
+        collision_angle = self.calculate_collision_angle(self.inc, collision_normal)
+        print(f"Collision with {sprite.name} at angle: {collision_angle:.2f} degrees")
 
         if self.debug:
             print(f"Collision normal with {sprite.name}: {collision_normal}")
@@ -64,6 +76,17 @@ class Player(BaseEntity):
                 self.offset += slide_vector
                 if self.debug:
                     print(f"Sliding, new position: {self.offset}")
+
+    def check_collisions(self):
+        player_world_pos = self.offset
+        for sprite in self.app.main_group:
+            if hasattr(sprite, 'collision_shape') and sprite != self:
+                if self.collides_with(sprite, player_world_pos):
+                    if self.debug:
+                        print(f"Collision detected with {sprite.name} at {sprite.pos}")
+                    self.handle_collision(sprite, player_world_pos)
+                elif self.debug and self.is_close_to(sprite, player_world_pos):
+                    print(f"Close to {sprite.name} at {sprite.pos}")
 
     def get_rect_collision_normal(self, player_world_pos, rect):
         closest_point = vec2(
