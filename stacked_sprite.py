@@ -49,17 +49,61 @@ class StackedSprite(pg.sprite.Sprite):
         self.get_angle()
         self.get_image()
         self.change_layer()
+        self.update_collision_shape()
 
     def draw_collision_shape(self, screen):
         if self.collision_shape:
-            transformed_pos = (self.pos - self.player.offset).rotate_rad(self.player.angle) + CENTER
-            if isinstance(self.collision_shape, pg.Rect):
-                rect = self.collision_shape.copy()
-                rect.center = transformed_pos
-                pg.draw.rect(screen, (255, 0, 0), rect, 2)
-            elif isinstance(self.collision_shape, tuple):
-                pg.draw.circle(screen, (255, 0, 0), transformed_pos, self.collision_shape[1], 2)
+            # Calculate the rotation angle
+            rotation_angle = -math.radians(self.angle * self.viewing_angle)
+            
+            # Calculate the position of the sprite in screen space
+            sprite_screen_pos = (self.pos - self.player.offset).rotate_rad(self.player.angle) + CENTER
 
+            if isinstance(self.collision_shape, pg.Rect):
+                # For rectangular collision shapes
+                rect = self.collision_shape.copy()
+                
+                # Calculate the offset of the rectangle from the sprite's center
+                offset = vec2(rect.center) - self.pos
+                
+                # Rotate this offset based on the sprite's rotation
+                rotated_offset = offset.rotate_rad(rotation_angle)
+                
+                # Calculate the rotated rectangle's center in screen space
+                rotated_center = sprite_screen_pos + rotated_offset
+                
+                # Calculate the rotated rectangle's corners
+                half_width = rect.width / 2
+                half_height = rect.height / 2
+                corners = [
+                    vec2(-half_width, -half_height),
+                    vec2(half_width, -half_height),
+                    vec2(half_width, half_height),
+                    vec2(-half_width, half_height)
+                ]
+                
+                # Rotate and translate the corners
+                rotated_corners = [
+                    corner.rotate_rad(rotation_angle) + rotated_center
+                    for corner in corners
+                ]
+                
+                # Draw the rotated rectangle
+                pg.draw.polygon(screen, (255, 0, 0), rotated_corners, 2)
+
+            elif isinstance(self.collision_shape, tuple):
+                # For circular collision shapes (no rotation needed)
+                center, radius = self.collision_shape
+                pg.draw.circle(screen, (255, 0, 0), sprite_screen_pos, radius, 2)
+
+
+    def update_collision_shape(self):
+        if isinstance(self.collision_shape, pg.Rect):
+            # Update the rectangle's position to match the sprite's position
+            self.collision_shape.center = self.pos
+        elif isinstance(self.collision_shape, tuple):
+            # Update the circle's center to match the sprite's position
+            self.collision_shape = (self.pos, self.collision_shape[1])
 
     def generate_tint(self):
         if self.name.startswith('grass'):
